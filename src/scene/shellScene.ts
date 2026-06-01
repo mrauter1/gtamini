@@ -226,6 +226,9 @@ const storefrontNames = [
 
 const MAX_HEAT_LEVEL = 5;
 const HEAT_SEARCH_RADIUS = 28;
+const DEFAULT_CAMERA_PITCH = 0.08;
+const MIN_CAMERA_PITCH = -0.12;
+const MAX_CAMERA_PITCH = 0.68;
 
 function rewardText(reward: MissionReward): string {
   return `$${reward.cash} • ${reward.score} score • ${reward.xp} XP`;
@@ -1686,7 +1689,7 @@ export class ShellScene {
   private activeInteraction: InteractableTarget | null = null;
   private readonly audio?: GameAudio;
   private cameraYaw: number;
-  private cameraPitch = 0.38;
+  private cameraPitch = DEFAULT_CAMERA_PITCH;
   private cameraLookIdle = 0;
   private dragOrbitActive = false;
   private lastPointer: { x: number; y: number } | null = null;
@@ -1848,7 +1851,7 @@ export class ShellScene {
     this.activeInteraction = null;
     this.missionTemplates = buildMissionTemplates(district);
     this.cameraYaw = district.spawnPoint.facing;
-    this.cameraPitch = 0.38;
+    this.cameraPitch = DEFAULT_CAMERA_PITCH;
     const { group, colliders, player, parkedVehicles, trafficVehicles, pedestrians, markers } = createDistrictGroup(district);
     this.districtRoot = group;
     this.staticColliders = colliders;
@@ -2150,8 +2153,8 @@ export class ShellScene {
   }
 
   private applyLookDelta(deltaX: number, deltaY: number): void {
-    this.cameraYaw = wrapAngle(this.cameraYaw + deltaX * 0.0048);
-    this.cameraPitch = THREE.MathUtils.clamp(this.cameraPitch - deltaY * 0.0036, 0.16, 0.76);
+    this.cameraYaw = wrapAngle(this.cameraYaw - deltaX * 0.0048);
+    this.cameraPitch = THREE.MathUtils.clamp(this.cameraPitch + deltaY * 0.0036, MIN_CAMERA_PITCH, MAX_CAMERA_PITCH);
     this.cameraLookIdle = 0;
   }
 
@@ -2208,11 +2211,8 @@ export class ShellScene {
       -1,
       1,
     );
-    const strafeAxis = THREE.MathUtils.clamp(
-      (this.input.right ? 1 : 0) - (this.input.left ? 1 : 0) + touchStrafeAxis,
-      -1,
-      1,
-    );
+    const keyboardStrafeAxis = (this.input.left ? 1 : 0) - (this.input.right ? 1 : 0);
+    const strafeAxis = THREE.MathUtils.clamp(keyboardStrafeAxis + touchStrafeAxis, -1, 1);
     let moveX = 0;
     let moveZ = 0;
     const magnitude = Math.hypot(forwardAxis, strafeAxis);
@@ -2246,11 +2246,8 @@ export class ShellScene {
     const accelerate = this.input.forward || this.touchInput.accelerate || touchForward ? 1 : 0;
     const reverse = this.input.backward || this.touchInput.brake || touchReverse ? 1 : 0;
     const touchSteer = Math.abs(this.touchInput.moveX) > 0.16 ? this.touchInput.moveX : 0;
-    const steer = THREE.MathUtils.clamp(
-      (this.input.right ? 1 : 0) - (this.input.left ? 1 : 0) + touchSteer,
-      -1,
-      1,
-    );
+    const keyboardSteer = (this.input.left ? 1 : 0) - (this.input.right ? 1 : 0);
+    const steer = THREE.MathUtils.clamp(keyboardSteer + touchSteer, -1, 1);
     const forwardAccel = 28;
     const reverseAccel = 16;
     const brakePower = 34;
@@ -3252,7 +3249,7 @@ export class ShellScene {
       .clone()
       .sub(forward.multiplyScalar(groundDistance))
       .add(right.multiplyScalar(shoulder));
-    desired.y = target.y + Math.sin(this.cameraPitch) * distance + (this.gameplay.mode === "driving" ? 2.6 : 1.35);
+    desired.y = target.y + Math.sin(this.cameraPitch) * distance + (this.gameplay.mode === "driving" ? 1.0 : 0.65);
 
     const smoothing = this.state.paused ? 0.08 : Math.min(0.16, delta * 6.4);
     this.camera.position.lerp(desired, smoothing);
