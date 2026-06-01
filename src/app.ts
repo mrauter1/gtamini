@@ -625,92 +625,25 @@ function touchControlsView(
   return `
     <div class="touch-overlay-shell" data-touch-mode="${liveRuntime.playerMode}">
       ${utilityButtons}
-      <section class="panel touch-joystick-shell">
-        <p class="eyebrow">${liveRuntime.playerMode === "driving" ? "Steer" : "Move"}</p>
+      <section class="touch-joystick-shell">
         <div class="touch-joystick-pad" data-touch-area="move" aria-label="${liveRuntime.playerMode === "driving" ? "Touch steering pad" : "Touch movement pad"}">
           <span class="touch-joystick-thumb" data-touch-thumb="move"></span>
         </div>
       </section>
-      <section class="panel touch-look-shell" data-touch-area="look" aria-label="Touch look pad">
-        <p class="eyebrow">Look</p>
-        <strong>Swipe to orbit the camera</strong>
-        <p class="scene-status">Right-side drag keeps the third-person view moving on phones and tablets.</p>
-      </section>
-      <section class="panel touch-button-stack">
+      <section class="touch-look-shell" data-touch-area="look" aria-label="Touch look pad"></section>
+      <section class="touch-button-stack">
         ${actionButtons}
       </section>
     </div>
   `;
 }
 
-function pauseOverlay(state: SessionState): string {
-  if (!state.paused) {
-    return "";
-  }
-
-  return `
-    <div class="overlay-backdrop">
-      <section class="panel pause-panel">
-        <p class="eyebrow">Session paused</p>
-        <h2>Keep the shell alive or reroute</h2>
-        <p>
-          Your selected district and menu options are stored locally. Resume here, swap districts, or drop back to the
-          menu without reloading the page.
-        </p>
-        <div class="button-row">
-          <button class="primary-button" data-action="resume">Resume shell</button>
-          <button class="secondary-button" data-action="open-districts">Change district</button>
-          <button class="ghost-button" data-action="return-menu">Return to menu</button>
-        </div>
-        <div class="toggle-grid">
-          ${toggleMarkup(state, "showControlHints")}
-          ${toggleMarkup(state, "reduceMotion")}
-        </div>
-      </section>
-    </div>
-  `;
-}
-
-function mobileDistrictStatus(runtime: ShellSceneRuntimeSnapshot): string {
-  if (runtime.activeMission) {
-    return runtime.activeMission.objective;
-  }
-
-  if (runtime.playerMode === "downed") {
-    return "Respawn is ready. Reset the run and jump back into free roam.";
-  }
-
-  if (runtime.playerMode === "driving") {
-    return runtime.heatLevel > 0
-      ? `${runtime.activeVehicleLabel ?? "Ride"} is hot. Stay mobile and cool the district down.`
-      : `${runtime.activeVehicleLabel ?? "Ride"} is rolling. Use the touch pedals and drift button to stay clear.`;
-  }
-
-  if (runtime.nearbyMissionOffer) {
-    return `${runtime.nearbyMissionOffer.title} is ready at ${runtime.nearbyMissionOffer.startLabel}. Tap Action to launch it.`;
-  }
-
-  if (runtime.nearbyVehicleLabel) {
-    return `${runtime.nearbyVehicleLabel} is within reach. Tap Ride to step in and start driving.`;
-  }
-
-  if (runtime.heatLevel > 0) {
-    return "Stay moving, widen the gap, and wait for the heat to cool.";
-  }
-
-  return "Move through the district, line up a vehicle, and pick your next contract.";
-}
-
-function districtSceneView(
-  state: SessionState,
+function missionPanelMarkup(
   district: DistrictDescriptor,
-  sceneAvailable: boolean,
-  runtime: ShellSceneRuntimeSnapshot | null,
+  liveRuntime: ShellSceneRuntimeSnapshot,
   touchUiEnabled: boolean,
 ): string {
-  const liveRuntime = runtimeForDistrict(runtime, district);
-  const bannerStatus = touchUiEnabled ? mobileDistrictStatus(liveRuntime) : liveRuntime.status;
-  const missionPanel = liveRuntime.activeMission
+  return liveRuntime.activeMission
     ? `
         <p class="eyebrow">${offerLabel(liveRuntime.activeMission.archetype)}</p>
         <h2>${liveRuntime.activeMission.title}</h2>
@@ -759,103 +692,185 @@ function districtSceneView(
           <p class="mission-objective">Each world marker starts a different repeatable route: delivery, checkpoint drive, or heat escape.</p>
           ${missionMarkup(district)}
         `;
+}
+
+function compactObjectiveMarkup(liveRuntime: ShellSceneRuntimeSnapshot, touchUiEnabled: boolean): string {
+  if (liveRuntime.activeMission) {
+    return `
+      <section class="play-objective" aria-live="polite">
+        <span>${offerLabel(liveRuntime.activeMission.archetype)}</span>
+        <strong>${liveRuntime.activeMission.objective}</strong>
+        <small>${formatDistance(liveRuntime.activeMission.distance)}${liveRuntime.activeMission.timerSeconds !== null ? ` • ${Math.max(0, Math.ceil(liveRuntime.activeMission.timerSeconds))}s` : ""}</small>
+      </section>
+    `;
+  }
+
+  if (liveRuntime.nearbyMissionOffer) {
+    return `
+      <section class="play-objective" aria-live="polite">
+        <span>${offerLabel(liveRuntime.nearbyMissionOffer.archetype)}</span>
+        <strong>${liveRuntime.nearbyMissionOffer.title}</strong>
+        <small>${touchUiEnabled ? "Tap Action" : "Press E"} to start</small>
+      </section>
+    `;
+  }
+
+  return "";
+}
+
+function compactHeatPips(runtime: ShellSceneRuntimeSnapshot): string {
+  return Array.from({ length: runtime.heatMaxLevel }, (_, index) => {
+    const active = index < runtime.heatLevel ? " play-heat-pip-active" : "";
+    return `<span class="play-heat-pip${active}"></span>`;
+  }).join("");
+}
+
+function pauseOverlay(
+  state: SessionState,
+  district: DistrictDescriptor,
+  liveRuntime: ShellSceneRuntimeSnapshot,
+  sceneAvailable: boolean,
+  touchUiEnabled: boolean,
+): string {
+  if (!state.paused) {
+    return "";
+  }
+
+  return `
+    <div class="overlay-backdrop">
+      <section class="panel pause-panel pause-menu">
+        <div class="pause-header">
+          <div>
+            <p class="eyebrow">Paused</p>
+            <h2>${district.name}</h2>
+            <p>${liveRuntime.status}</p>
+          </div>
+          <div class="status-chip">${sceneModeLabel(liveRuntime)}</div>
+        </div>
+        <div class="button-row">
+          <button class="primary-button" data-action="resume">Resume</button>
+          <button class="secondary-button" data-action="open-districts">Change district</button>
+          <button class="ghost-button" data-action="return-menu">Return to menu</button>
+        </div>
+        <div class="pause-grid">
+          <section class="pause-card pause-mission-card">
+            ${missionPanelMarkup(district, liveRuntime, touchUiEnabled)}
+          </section>
+          <section class="pause-card pause-map-card">
+            <p class="eyebrow">Map</p>
+            ${minimapMarkup(district, liveRuntime)}
+          </section>
+          <section class="pause-card pause-vitals-card">
+            <p class="eyebrow">Status</p>
+            <div class="vitals-shell">
+              ${meterMarkup("Health", liveRuntime.health, 100, "health")}
+              ${liveRuntime.vehicleDurability !== null ? meterMarkup("Durability", liveRuntime.vehicleDurability, 100, "durability") : ""}
+              ${liveRuntime.speed !== null ? speedMarkup(liveRuntime) : ""}
+              ${heatMarkup(liveRuntime)}
+            </div>
+          </section>
+          <section class="pause-card pause-reward-card">
+            <p class="eyebrow">Progress</p>
+            <div class="stack-list reward-grid">
+              <div>
+                <span class="stack-label">Cash</span>
+                <strong>$${liveRuntime.cash}</strong>
+              </div>
+              <div>
+                <span class="stack-label">Score</span>
+                <strong>${liveRuntime.score}</strong>
+              </div>
+              <div>
+                <span class="stack-label">XP</span>
+                <strong>${liveRuntime.xp}</strong>
+              </div>
+              <div>
+                <span class="stack-label">Respawn</span>
+                <strong>${liveRuntime.canRespawn ? "Ready" : "Unavailable"}</strong>
+              </div>
+            </div>
+            ${sceneFallbackMarkup(sceneAvailable)}
+          </section>
+        </div>
+        ${controlHints(state, liveRuntime)}
+        <div class="toggle-grid">
+          ${toggleMarkup(state, "showControlHints")}
+          ${toggleMarkup(state, "reduceMotion")}
+        </div>
+      </section>
+    </div>
+  `;
+}
+
+function mobileDistrictStatus(runtime: ShellSceneRuntimeSnapshot): string {
+  if (runtime.activeMission) {
+    return runtime.activeMission.objective;
+  }
+
+  if (runtime.playerMode === "downed") {
+    return "Respawn is ready. Reset the run and jump back into free roam.";
+  }
+
+  if (runtime.playerMode === "driving") {
+    return runtime.heatLevel > 0
+      ? `${runtime.activeVehicleLabel ?? "Ride"} is hot. Stay mobile and cool the district down.`
+      : `${runtime.activeVehicleLabel ?? "Ride"} is rolling. Use the touch pedals and drift button to stay clear.`;
+  }
+
+  if (runtime.nearbyMissionOffer) {
+    return `${runtime.nearbyMissionOffer.title} is ready at ${runtime.nearbyMissionOffer.startLabel}. Tap Action to launch it.`;
+  }
+
+  if (runtime.nearbyVehicleLabel) {
+    return `${runtime.nearbyVehicleLabel} is within reach. Tap Ride to step in and start driving.`;
+  }
+
+  if (runtime.heatLevel > 0) {
+    return "Stay moving, widen the gap, and wait for the heat to cool.";
+  }
+
+  return "Move through the district, line up a vehicle, and pick your next contract.";
+}
+
+function districtSceneView(
+  state: SessionState,
+  district: DistrictDescriptor,
+  sceneAvailable: boolean,
+  runtime: ShellSceneRuntimeSnapshot | null,
+  touchUiEnabled: boolean,
+): string {
+  const liveRuntime = runtimeForDistrict(runtime, district);
+  const promptText = liveRuntime.prompt ?? mobileDistrictStatus(liveRuntime);
+  const vehicleStat =
+    liveRuntime.playerMode === "driving"
+      ? `<span>${liveRuntime.speed ?? 0}<small> km/h</small></span>`
+      : `<span>${liveRuntime.nearbyVehicleLabel ? "Ride near" : "On foot"}</span>`;
 
   return `
     <section class="hud-layer gameplay-hud">
-      <header class="hud-strip gameplay-strip">
-        <div class="panel hud-card district-banner">
-          <p class="eyebrow">Local district live</p>
-          <h2>${district.name}</h2>
-          <p class="scene-status">${bannerStatus}</p>
-          <div class="banner-chip-row">
-            <span class="status-chip">${sceneModeLabel(liveRuntime)}</span>
-            <span class="status-chip">${liveRuntime.pointerLockActive ? "Mouse locked" : "Mouse orbit ready"}</span>
-            <span class="status-chip">${liveRuntime.heatLabel}</span>
-          </div>
+      <div class="play-hud-top">
+        <div class="play-mode-strip">
+          <span>${district.shortTag}</span>
+          <strong>${sceneModeLabel(liveRuntime)}</strong>
+          <span>${liveRuntime.heatLabel}</span>
         </div>
-        <div class="panel hud-card vitals-shell">
-          ${meterMarkup("Health", liveRuntime.health, 100, "health")}
-          ${liveRuntime.vehicleDurability !== null ? meterMarkup("Durability", liveRuntime.vehicleDurability, 100, "durability") : ""}
-          ${liveRuntime.speed !== null ? speedMarkup(liveRuntime) : ""}
-          ${heatMarkup(liveRuntime)}
+        <div class="play-stats-strip" aria-label="Player status">
+          <span>$${liveRuntime.cash}</span>
+          <span>HP ${liveRuntime.health}</span>
+          ${liveRuntime.vehicleDurability !== null ? `<span>CAR ${liveRuntime.vehicleDurability}</span>` : ""}
+          ${vehicleStat}
+          <span class="play-heat-pips">${compactHeatPips(liveRuntime)}</span>
         </div>
-        <div class="panel hud-card reward-shell">
-          <div class="stack-list reward-grid">
-            <div>
-              <span class="stack-label">Cash</span>
-              <strong>$${liveRuntime.cash}</strong>
-            </div>
-            <div>
-              <span class="stack-label">Score</span>
-              <strong>${liveRuntime.score}</strong>
-            </div>
-            <div>
-              <span class="stack-label">XP</span>
-              <strong>${liveRuntime.xp}</strong>
-            </div>
-          </div>
-          <div class="status-chip">${liveRuntime.patrolAlert ? "Patrols converging" : "Session saved locally"}</div>
-          <div class="button-row">
-            <button class="secondary-button" data-action="toggle-pause">${state.paused ? "Resume" : "Pause"}</button>
-            <button class="ghost-button" data-action="open-districts">Districts</button>
-          </div>
-        </div>
-      </header>
-      <div class="hud-columns gameplay-columns">
-        <section class="panel hud-card prompt-shell">
-          <p class="eyebrow">Street feed</p>
-          <strong class="prompt-copy prompt-tone-${liveRuntime.message.tone}">${liveRuntime.message.text}</strong>
-          <p class="scene-status">${liveRuntime.prompt ?? "Free roam is ready."}</p>
-          <div class="stack-list prompt-stats">
-            <div>
-              <span class="stack-label">Objective distance</span>
-              <strong>${formatDistance(liveRuntime.activeMission?.distance ?? null)}</strong>
-            </div>
-            <div>
-              <span class="stack-label">District tag</span>
-              <strong>${liveRuntime.districtTag}</strong>
-            </div>
-          </div>
-          <p class="shell-footnote">${district.districtNote}</p>
-          ${sceneFallbackMarkup(sceneAvailable)}
-        </section>
-        <section class="panel hud-card route-shell minimap-card">
-          <p class="eyebrow">Minimap</p>
-          ${minimapMarkup(district, liveRuntime)}
-          <div class="stack-list minimap-summary">
-            <div>
-              <span class="stack-label">Player</span>
-              <strong>${liveRuntime.playerMode === "driving" ? "Vehicle route" : "On foot"}</strong>
-            </div>
-            <div>
-              <span class="stack-label">Pressure</span>
-              <strong>${liveRuntime.patrolAlert ? "Search grid active" : "No patrol search"}</strong>
-            </div>
-          </div>
-        </section>
-        <section class="panel hud-card mission-shell live-mission-shell">
-          ${missionPanel}
-        </section>
       </div>
-      <section class="panel hud-card feedback-shell">
-        <p class="eyebrow">Loop status</p>
-        <div class="stack-list feedback-grid">
-          <div>
-            <span class="stack-label">Respawn</span>
-            <strong>${liveRuntime.canRespawn ? "Ready on R" : "Unavailable"}</strong>
-          </div>
-          <div>
-            <span class="stack-label">Vehicle reset</span>
-            <strong>${liveRuntime.canResetVehicle ? "Ready on X" : "Not driving"}</strong>
-          </div>
-          <div>
-            <span class="stack-label">Pointer lock</span>
-            <strong>${liveRuntime.pointerLockSupported ? "Supported" : "Drag orbit only"}</strong>
-          </div>
-        </div>
+      ${compactObjectiveMarkup(liveRuntime, touchUiEnabled)}
+      <section class="play-minimap" aria-label="Minimap">
+        ${minimapMarkup(district, liveRuntime)}
       </section>
-      ${controlHints(state, liveRuntime)}
-      ${pauseOverlay(state)}
+      <section class="play-prompt play-prompt-${liveRuntime.message.tone}" aria-live="polite">
+        <strong>${liveRuntime.message.text}</strong>
+        <span>${promptText}</span>
+      </section>
+      ${pauseOverlay(state, district, liveRuntime, sceneAvailable, touchUiEnabled)}
     </section>
   `;
 }

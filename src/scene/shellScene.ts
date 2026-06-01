@@ -2150,7 +2150,7 @@ export class ShellScene {
   }
 
   private applyLookDelta(deltaX: number, deltaY: number): void {
-    this.cameraYaw = wrapAngle(this.cameraYaw - deltaX * 0.0048);
+    this.cameraYaw = wrapAngle(this.cameraYaw + deltaX * 0.0048);
     this.cameraPitch = THREE.MathUtils.clamp(this.cameraPitch - deltaY * 0.0036, 0.16, 0.76);
     this.cameraLookIdle = 0;
   }
