@@ -6,6 +6,7 @@ services:
     branch: main
     buildCommand: npm ci && npm run build
     staticPublishPath: ./dist
+    renderSubdomainPolicy: enabled
     routes:
       - type: rewrite
         source: /*
