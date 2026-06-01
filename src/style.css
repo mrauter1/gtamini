@@ -1,0 +1,1145 @@
+:root {
+  color-scheme: dark;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.4;
+  font-weight: 400;
+  --sky-top: #f7a35c;
+  --sky-bottom: #ffddb0;
+  --sky-haze: #ffbc73;
+  --accent: #ffd447;
+  --accent-strong: #5fde8f;
+  --panel-line: rgba(255, 212, 71, 0.4);
+  --ink: #fbf0dd;
+  --ink-muted: rgba(255, 245, 226, 0.74);
+  --panel: rgba(20, 18, 22, 0.78);
+  --panel-dark: rgba(12, 12, 15, 0.88);
+  --shadow: rgba(0, 0, 0, 0.32);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+  width: 100%;
+}
+
+body {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 28% 28%, rgba(255, 255, 255, 0.12), transparent 24%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 48%, #362d2b 100%);
+  color: var(--ink);
+  overflow: hidden;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.scene-shell,
+.scene-host,
+.scene-canvas,
+.ui-root,
+.touch-controls-root {
+  position: absolute;
+  inset: 0;
+}
+
+.scene-shell {
+  overflow: hidden;
+}
+
+.scene-shell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 228, 181, 0.16), rgba(23, 18, 16, 0.12)),
+    radial-gradient(circle at 25% 22%, rgba(255, 255, 255, 0.22), transparent 20%);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.scene-vignette {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(17, 15, 17, 0.62) 0%, transparent 28%, transparent 72%, rgba(17, 15, 17, 0.62) 100%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.58));
+  z-index: 2;
+  pointer-events: none;
+}
+
+.scene-host-fallback {
+  background:
+    radial-gradient(circle at 25% 24%, rgba(255, 245, 214, 0.48), transparent 14%),
+    linear-gradient(180deg, rgba(255, 224, 173, 0.18), rgba(24, 20, 22, 0.4));
+}
+
+.ui-root {
+  z-index: 4;
+  padding: 2rem;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.touch-controls-root {
+  z-index: 6;
+  pointer-events: none;
+}
+
+.scene-canvas {
+  display: block;
+  touch-action: none;
+}
+
+.touch-overlay-shell {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.touch-top-actions,
+.touch-button-stack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.touch-top-actions {
+  position: absolute;
+  top: max(env(safe-area-inset-top), 0.75rem);
+  right: max(env(safe-area-inset-right), 0.75rem);
+  grid-auto-flow: column;
+  pointer-events: auto;
+}
+
+.touch-joystick-shell,
+.touch-look-shell,
+.touch-button-stack,
+.touch-downed-shell {
+  pointer-events: auto;
+}
+
+.touch-joystick-shell,
+.touch-look-shell,
+.touch-button-stack,
+.touch-downed-shell {
+  position: absolute;
+}
+
+.touch-joystick-shell {
+  left: max(env(safe-area-inset-left), 0.75rem);
+  bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  width: min(8.8rem, 28vw);
+  padding: 0.7rem;
+}
+
+.touch-joystick-pad {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.08) 0 24%, transparent 24% 100%),
+    rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  touch-action: none;
+}
+
+.touch-joystick-pad::before,
+.touch-joystick-pad::after {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  transform: translate(-50%, -50%);
+}
+
+.touch-joystick-pad::before {
+  width: 70%;
+  height: 1px;
+}
+
+.touch-joystick-pad::after {
+  width: 1px;
+  height: 70%;
+}
+
+.touch-joystick-thumb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2.7rem;
+  height: 2.7rem;
+  margin-left: -1.35rem;
+  margin-top: -1.35rem;
+  border-radius: 50%;
+  background: linear-gradient(180deg, rgba(255, 212, 71, 0.88), rgba(255, 157, 73, 0.82));
+  border: 1px solid rgba(35, 23, 15, 0.6);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.34);
+}
+
+.touch-look-shell {
+  right: calc(max(env(safe-area-inset-right), 0.75rem) + min(11rem, 34vw));
+  bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  width: min(14rem, 36vw);
+  min-height: 8rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 0.4rem;
+  padding: 0.85rem 0.95rem;
+  touch-action: none;
+}
+
+.touch-look-shell strong {
+  font-size: 0.95rem;
+}
+
+.touch-look-shell .scene-status {
+  margin-top: 0;
+  font-size: 0.82rem;
+}
+
+.touch-button-stack {
+  right: max(env(safe-area-inset-right), 0.75rem);
+  bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  width: min(11rem, 34vw);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0.7rem;
+}
+
+.touch-downed-shell {
+  right: max(env(safe-area-inset-right), 0.75rem);
+  left: max(env(safe-area-inset-left), 0.75rem);
+  bottom: max(env(safe-area-inset-bottom), 0.75rem);
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.95rem 1rem;
+}
+
+.touch-button {
+  min-height: 3.55rem;
+  border-radius: 1.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  touch-action: none;
+  transition:
+    transform 120ms ease,
+    background 120ms ease,
+    border-color 120ms ease;
+}
+
+.touch-button-hold {
+  background: linear-gradient(180deg, rgba(255, 212, 71, 0.28), rgba(255, 157, 73, 0.2));
+}
+
+.touch-button-utility {
+  min-height: 2.8rem;
+  min-width: 5.6rem;
+  padding: 0 1rem;
+  backdrop-filter: blur(16px);
+}
+
+.touch-button-active,
+.touch-button:active {
+  transform: scale(0.97);
+  background: rgba(255, 212, 71, 0.28);
+  border-color: rgba(255, 212, 71, 0.72);
+}
+
+.panel,
+.overlay-backdrop,
+button,
+label,
+input {
+  pointer-events: auto;
+}
+
+.panel {
+  border: 1px solid var(--panel-line);
+  background: var(--panel);
+  box-shadow: 0 22px 50px var(--shadow);
+  backdrop-filter: blur(20px);
+}
+
+.panel-dark {
+  background: var(--panel-dark);
+}
+
+.hero-panel,
+.selection-shell {
+  width: min(1180px, 100%);
+  margin: auto;
+  border-radius: 28px;
+}
+
+.hero-panel {
+  display: grid;
+  grid-template-columns: 1.3fr 0.9fr;
+  gap: 1.4rem;
+  padding: 1.6rem;
+}
+
+.hero-copy,
+.menu-sidebar,
+.selection-shell,
+.hud-card,
+.pause-panel {
+  border-radius: 24px;
+}
+
+.hero-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 2rem 2.2rem;
+  background:
+    linear-gradient(150deg, rgba(0, 0, 0, 0.24), rgba(255, 157, 73, 0.14)),
+    rgba(19, 17, 20, 0.62);
+}
+
+.menu-sidebar {
+  padding: 1.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.selection-shell {
+  padding: 1.35rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.4rem;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  font-size: 0.74rem;
+  color: var(--accent);
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: "Avenir Next Condensed", "Franklin Gothic Medium", "Arial Narrow", sans-serif;
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+}
+
+h1 {
+  font-size: clamp(3.1rem, 7vw, 6rem);
+}
+
+h2 {
+  font-size: clamp(1.4rem, 2.3vw, 2.1rem);
+}
+
+.hero-summary,
+.sidebar-copy,
+.district-note,
+.shell-footnote,
+.local-mode-note,
+.pause-panel p,
+.panel p {
+  color: var(--ink-muted);
+}
+
+.hero-summary {
+  max-width: 36rem;
+  font-size: 1.05rem;
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.primary-button,
+.secondary-button,
+.ghost-button {
+  border-radius: 999px;
+  padding: 0.92rem 1.28rem;
+  border: 1px solid transparent;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.primary-button {
+  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 60%, white));
+  color: #23170f;
+  font-weight: 700;
+}
+
+.secondary-button {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--ink);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.ghost-button {
+  background: transparent;
+  color: var(--ink);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.primary-button:hover,
+.secondary-button:hover,
+.ghost-button:hover {
+  transform: translateY(-1px);
+}
+
+.status-chip,
+.seed-pill,
+.theme-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.32rem 0.72rem;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  font-size: 0.78rem;
+  color: var(--ink);
+}
+
+.stack-list,
+.toggle-grid,
+.hud-columns,
+.hint-grid,
+.landmark-list,
+.district-grid,
+.selection-header,
+.district-card-topline,
+.hud-strip,
+.preview-row,
+.preview-legend,
+.route-list {
+  display: flex;
+  gap: 1rem;
+}
+
+.stack-list {
+  flex-direction: column;
+}
+
+.stack-label {
+  display: block;
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.toggle-grid {
+  flex-direction: column;
+}
+
+.toggle {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.8rem;
+  align-items: start;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.toggle input {
+  width: 1.15rem;
+  height: 1.15rem;
+  margin-top: 0.15rem;
+  accent-color: var(--accent);
+}
+
+.toggle-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.toggle-copy small {
+  color: var(--ink-muted);
+}
+
+.sidebar-tag {
+  margin: 0;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.fallback-note {
+  margin-top: 1rem;
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.fallback-note p {
+  margin: 0.65rem 0 0;
+}
+
+.selection-header {
+  justify-content: space-between;
+  align-items: end;
+}
+
+.district-grid {
+  flex-wrap: wrap;
+}
+
+.district-card {
+  width: min(23rem, 100%);
+  flex: 1 1 22rem;
+  padding: 1.35rem;
+  border-radius: 24px;
+}
+
+.district-card-selected {
+  border-color: color-mix(in srgb, var(--accent) 75%, white);
+  box-shadow:
+    0 22px 50px var(--shadow),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+.district-card-topline {
+  flex-wrap: wrap;
+  margin-bottom: 0.85rem;
+}
+
+.preview-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin: 0.5rem 0 0.9rem;
+}
+
+.preview-grid {
+  display: grid;
+  gap: 0.25rem;
+  padding: 0.7rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.preview-row {
+  gap: 0.25rem;
+}
+
+.preview-cell {
+  width: 1.3rem;
+  height: 1.3rem;
+  border-radius: 0.38rem;
+  display: grid;
+  place-items: center;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: rgba(19, 16, 14, 0.92);
+}
+
+.preview-cell::after {
+  content: attr(data-symbol);
+}
+
+.preview-empty {
+  background: rgba(255, 255, 255, 0.04);
+  color: transparent;
+}
+
+.preview-block {
+  background: rgba(255, 245, 226, 0.18);
+  color: rgba(255, 245, 226, 0.86);
+}
+
+.preview-avenue {
+  background: color-mix(in srgb, var(--accent) 75%, #ffffff);
+}
+
+.preview-street {
+  background: #f0c867;
+}
+
+.preview-alley {
+  background: #d58956;
+}
+
+.preview-hub {
+  background: color-mix(in srgb, var(--accent-strong) 76%, white);
+}
+
+.preview-pickup {
+  background: color-mix(in srgb, var(--accent) 82%, #ffe7a3);
+}
+
+.preview-dropoff {
+  background: color-mix(in srgb, var(--accent-strong) 74%, #ffd7b0);
+}
+
+.preview-warehouse {
+  background: #85b3d8;
+}
+
+.preview-park {
+  background: #8dcf7a;
+}
+
+.preview-poi {
+  background: #f7a96d;
+}
+
+.preview-legend {
+  flex-wrap: wrap;
+  gap: 0.55rem 0.8rem;
+  font-size: 0.76rem;
+  color: var(--ink-muted);
+}
+
+.preview-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.preview-legend strong {
+  color: var(--ink);
+}
+
+.landmark-list {
+  flex-wrap: wrap;
+}
+
+.landmark-list span {
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  background: rgba(255, 255, 255, 0.07);
+  font-size: 0.82rem;
+}
+
+.hud-layer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  justify-content: space-between;
+}
+
+.hud-strip {
+  justify-content: space-between;
+  align-items: start;
+}
+
+.gameplay-strip {
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.district-banner,
+.vitals-shell,
+.reward-shell {
+  flex: 1 1 18rem;
+}
+
+.district-banner h2 {
+  font-size: clamp(1.8rem, 3vw, 2.8rem);
+}
+
+.scene-status {
+  margin: 0.65rem 0 0;
+}
+
+.banner-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 0.9rem;
+}
+
+.hud-card,
+.pause-panel {
+  padding: 1.1rem 1.2rem;
+}
+
+.hud-columns {
+  justify-content: space-between;
+  align-items: stretch;
+  flex-wrap: wrap;
+}
+
+.gameplay-columns {
+  align-items: start;
+}
+
+.mission-shell,
+.route-shell,
+.landmark-shell {
+  flex: 1 1 20rem;
+  width: min(29rem, 100%);
+}
+
+.prompt-shell {
+  flex: 1 1 18rem;
+  width: min(24rem, 100%);
+}
+
+.reward-shell {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 0.9rem;
+  min-width: 20rem;
+}
+
+.prompt-copy {
+  display: block;
+  font-size: 1.05rem;
+  line-height: 1.45;
+}
+
+.prompt-tone-info {
+  color: var(--ink);
+}
+
+.prompt-tone-success {
+  color: var(--accent);
+}
+
+.prompt-tone-warning {
+  color: #ffd88e;
+}
+
+.prompt-tone-danger {
+  color: #ff8d82;
+}
+
+.vitals-shell {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+}
+
+.meter-card,
+.speed-card {
+  flex: 1 1 9.5rem;
+  border-radius: 18px;
+  padding: 0.85rem 0.95rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.meter-copy {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 1rem;
+}
+
+.meter-track {
+  margin-top: 0.65rem;
+  height: 0.48rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.meter-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+}
+
+.meter-fill-health {
+  background: linear-gradient(90deg, #f95d4f, #ffb152);
+}
+
+.meter-fill-durability {
+  background: linear-gradient(90deg, #6fd6ff, #fff09f);
+}
+
+.heat-shell {
+  flex: 1 1 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.9rem;
+  border-radius: 18px;
+  padding: 0.85rem 0.95rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.heat-pips {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.heat-pip {
+  width: 0.9rem;
+  height: 0.9rem;
+  clip-path: polygon(50% 0%, 63% 35%, 100% 38%, 72% 58%, 82% 100%, 50% 75%, 18% 100%, 28% 58%, 0% 38%, 37% 35%);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.heat-pip-active {
+  background: linear-gradient(180deg, #ffdb8a, #f95d4f);
+}
+
+.speed-card strong {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: clamp(1.7rem, 3vw, 2.4rem);
+  line-height: 0.92;
+}
+
+.speed-card small {
+  color: var(--ink-muted);
+}
+
+.control-panel {
+  margin-top: auto;
+  width: min(40rem, 100%);
+}
+
+.route-list {
+  flex-direction: column;
+}
+
+.route-card {
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.route-card strong {
+  display: block;
+  line-height: 1.35;
+}
+
+.reward-grid,
+.mission-stats,
+.prompt-stats,
+.feedback-grid,
+.minimap-summary {
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+}
+
+.mission-objective,
+.mission-detail {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.mission-detail {
+  color: var(--ink-muted);
+}
+
+.mission-timer {
+  width: fit-content;
+  background: rgba(255, 216, 142, 0.18);
+  color: #ffe0a1;
+}
+
+.minimap-card {
+  gap: 0.95rem;
+}
+
+.minimap-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.minimap-svg {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 24px;
+  overflow: hidden;
+}
+
+.minimap-backdrop {
+  fill: rgba(10, 12, 18, 0.8);
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 0.8;
+}
+
+.minimap-road {
+  fill: rgba(228, 230, 235, 0.16);
+}
+
+.minimap-road-avenue {
+  fill: rgba(255, 211, 115, 0.26);
+}
+
+.minimap-road-alley {
+  fill: rgba(121, 132, 156, 0.18);
+}
+
+.minimap-search-zone {
+  fill: rgba(249, 93, 79, 0.12);
+  stroke: rgba(249, 93, 79, 0.55);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 1.4;
+}
+
+.minimap-route-line {
+  stroke: rgba(255, 255, 255, 0.42);
+  stroke-width: 1;
+  stroke-dasharray: 2 1.6;
+}
+
+.minimap-marker {
+  stroke: rgba(14, 12, 10, 0.8);
+  stroke-width: 0.5;
+}
+
+.minimap-marker-mission {
+  fill: rgba(255, 255, 255, 0.55);
+}
+
+.minimap-marker-objective,
+.minimap-marker-checkpoint,
+.minimap-emphasis-active {
+  fill: rgba(255, 211, 71, 0.95);
+}
+
+.minimap-marker-safe {
+  fill: rgba(95, 222, 143, 0.95);
+}
+
+.minimap-marker-patrol,
+.minimap-emphasis-danger {
+  fill: rgba(249, 93, 79, 0.95);
+}
+
+.minimap-player {
+  fill: white;
+  stroke: rgba(14, 12, 10, 0.9);
+  stroke-width: 0.7;
+}
+
+.minimap-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.86rem;
+  color: var(--ink-muted);
+}
+
+.live-mission-shell,
+.feedback-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.hint-grid {
+  flex-wrap: wrap;
+}
+
+.hint-grid div {
+  min-width: 10rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.hint-grid strong {
+  color: var(--accent);
+  font-size: 0.95rem;
+}
+
+.overlay-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 4, 8, 0.48);
+  backdrop-filter: blur(10px);
+}
+
+.pause-panel {
+  width: min(34rem, calc(100vw - 2rem));
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .ui-root {
+  padding:
+    max(env(safe-area-inset-top), 0.6rem)
+    max(env(safe-area-inset-right), 0.6rem)
+    calc(max(env(safe-area-inset-bottom), 0.8rem) + 11.5rem)
+    max(env(safe-area-inset-left), 0.6rem);
+  align-items: stretch;
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .hud-layer {
+  gap: 0.7rem;
+  justify-content: flex-start;
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .hud-card,
+#app[data-touch-ui="true"][data-screen="districtScene"] .pause-panel {
+  padding: 0.85rem 0.95rem;
+  backdrop-filter: blur(14px);
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .control-panel,
+#app[data-touch-ui="true"][data-screen="districtScene"] .prompt-shell,
+#app[data-touch-ui="true"][data-screen="districtScene"] .feedback-shell {
+  display: none;
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .gameplay-strip,
+#app[data-touch-ui="true"][data-screen="districtScene"] .gameplay-columns {
+  gap: 0.7rem;
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .district-banner {
+  flex: 1 1 100%;
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .district-banner .banner-chip-row .status-chip:nth-child(2),
+#app[data-touch-ui="true"][data-screen="districtScene"] .reward-shell .button-row {
+  display: none;
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .vitals-shell,
+#app[data-touch-ui="true"][data-screen="districtScene"] .reward-shell,
+#app[data-touch-ui="true"][data-screen="districtScene"] .route-shell,
+#app[data-touch-ui="true"][data-screen="districtScene"] .mission-shell {
+  flex: 1 1 calc(50% - 0.35rem);
+  width: auto;
+  min-width: 0;
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .reward-shell {
+  min-width: 0;
+}
+
+#app[data-touch-ui="true"][data-screen="districtScene"] .mission-stats,
+#app[data-touch-ui="true"][data-screen="districtScene"] .reward-grid,
+#app[data-touch-ui="true"][data-screen="districtScene"] .minimap-summary {
+  gap: 0.55rem;
+}
+
+@media (max-width: 980px) {
+  body {
+    overflow-y: auto;
+  }
+
+  .ui-root {
+    position: relative;
+    min-height: 100vh;
+    padding: 1rem;
+  }
+
+  .hero-panel,
+  .selection-shell,
+  .hud-layer {
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .hero-panel,
+  .selection-header,
+  .hud-strip,
+  .hud-columns {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .mission-shell,
+  .route-shell,
+  .landmark-shell,
+  .reward-shell {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .preview-cell {
+    width: 1.1rem;
+    height: 1.1rem;
+    font-size: 0.62rem;
+  }
+}
+
+@media (max-width: 640px) {
+  .ui-root {
+    padding:
+      max(env(safe-area-inset-top), 0.85rem)
+      max(env(safe-area-inset-right), 0.85rem)
+      max(env(safe-area-inset-bottom), 1rem)
+      max(env(safe-area-inset-left), 0.85rem);
+  }
+
+  h1 {
+    font-size: clamp(2.4rem, 12vw, 4rem);
+  }
+
+  .button-row {
+    flex-direction: column;
+  }
+
+  .primary-button,
+  .secondary-button,
+  .ghost-button {
+    width: 100%;
+  }
+
+  .district-card {
+    width: 100%;
+  }
+}
+
+@media (orientation: portrait) {
+  #app[data-touch-ui="true"][data-screen="districtScene"] .ui-root {
+    padding-bottom: calc(max(env(safe-area-inset-bottom), 0.8rem) + 14.8rem);
+  }
+
+  #app[data-touch-ui="true"][data-screen="districtScene"] .touch-joystick-shell {
+    width: min(7.6rem, 34vw);
+  }
+
+  #app[data-touch-ui="true"][data-screen="districtScene"] .touch-button-stack {
+    width: min(9.6rem, 38vw);
+  }
+
+  #app[data-touch-ui="true"][data-screen="districtScene"] .touch-look-shell {
+    left: 50%;
+    right: auto;
+    bottom: calc(max(env(safe-area-inset-bottom), 0.75rem) + 7.8rem);
+    width: min(70vw, 18rem);
+    min-height: 6rem;
+    transform: translateX(-50%);
+  }
+
+  #app[data-touch-ui="true"][data-screen="districtScene"] .route-shell,
+  #app[data-touch-ui="true"][data-screen="districtScene"] .mission-shell,
+  #app[data-touch-ui="true"][data-screen="districtScene"] .vitals-shell,
+  #app[data-touch-ui="true"][data-screen="districtScene"] .reward-shell {
+    flex-basis: 100%;
+  }
+}
